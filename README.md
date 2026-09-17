@@ -20,24 +20,57 @@ vrijdag niet is afgevinkt komt op de **Muur van Schande** te staan.
 
 ---
 
-## Snel starten (5 minuten)
+## De code op je eigen pc krijgen
 
-Je hebt [Node.js](https://nodejs.org) nodig en de **Expo Go**-app op je telefoon
-(gratis in de App Store / Play Store).
+De code staat op GitHub, niet op je pc. Je moet hem dus eerst binnenhalen.
+
+**Stap 1 — Node.js installeren** (eenmalig)
+Download de LTS-versie op [nodejs.org](https://nodejs.org) en installeer die.
+Controleer daarna in een terminal (Windows: PowerShell, Mac: Terminal):
 
 ```bash
-npm install     # eenmalig: haalt alle onderdelen op
+node -v
+```
+
+Je moet een versienummer zien, bv. `v22.x.x`.
+
+**Stap 2 — de code downloaden**
+
+```bash
+git clone -b claude/kot-taken-afval-app-nl3zbr https://github.com/Mauritsman/Brouwersstraat-21.git
+cd Brouwersstraat-21
+```
+
+Geen `git` op je pc? Ga dan naar
+[de branch op GitHub](https://github.com/Mauritsman/Brouwersstraat-21/tree/claude/kot-taken-afval-app-nl3zbr),
+klik op de groene knop **Code → Download ZIP**, en pak het uit.
+Open daarna een terminal in die map.
+
+---
+
+## Op je telefoon krijgen (5 minuten)
+
+Dit is de snelste manier. Je hebt de **Expo Go**-app nodig — gratis in de
+App Store en de Play Store.
+
+```bash
+npm install     # eenmalig: haalt alle onderdelen op (duurt ~1 minuut)
 npm start       # start de app
 ```
 
 Er verschijnt een QR-code in je terminal. Scan die met je telefoon:
 
 - **iPhone** — met de gewone Camera-app
-- **Android** — met de Expo Go-app
+- **Android** — met de Expo Go-app zelf
 
-De app opent op je telefoon. **Dit werkt meteen, zonder Supabase.** Alles blijft dan
-wel op je eigen toestel staan — handig om te testen, maar je huisgenoten zien je
-vinkjes nog niet.
+De app opent op je telefoon. Je pc en je telefoon moeten wel op **hetzelfde
+wifi-netwerk** zitten. Lukt dat niet, probeer dan `npx expo start --tunnel`.
+
+**Dit werkt meteen, zonder Supabase.** Alles blijft dan wel op je eigen toestel
+staan — handig om te testen, maar je huisgenoten zien je vinkjes nog niet.
+
+> Zolang je Expo Go gebruikt moet `npm start` op je pc draaien om de app te
+> openen. Voor een app die los werkt, zie *Een echte app maken* onderaan.
 
 ---
 
@@ -223,17 +256,49 @@ en een knipperende rode balk met de naam erbij.
 
 ---
 
-## Een echte app bouwen (later)
+## Een echte app maken
 
-Expo Go is genoeg om de app dagelijks te gebruiken. Wil je een installeerbare app
-in de App Store of Play Store, dan gebruik je [EAS Build](https://docs.expo.dev/build/introduction/):
+Expo Go is genoeg om de app dagelijks te gebruiken, maar dan moet `npm start`
+altijd op je pc draaien. Wil je een app die **los op je telefoon staat**, met een
+eigen icoon, dan bouw je hem met [EAS Build](https://docs.expo.dev/build/introduction/).
+Dat draait in de cloud van Expo — je hebt geen Android Studio of Xcode nodig.
 
 ```bash
-npx eas build --platform android
+npm install -g eas-cli          # eenmalig
+eas login                       # gratis Expo-account aanmaken
+eas build --platform android --profile preview
 ```
 
-> **Let op:** in deze ontwikkelomgeving faalt de laatste stap van `expo export`
-> (het omzetten naar Hermes-bytecode) door een te oude `hermesc` in de container —
-> ook bij een volledig lege Expo-app. Dat ligt dus niet aan deze code: het bundelen
-> zelf lukt (alle 1616 modules) en `npm start` werkt gewoon. Op een normale machine
-> of via EAS Build speelt dit niet.
+Na ~10 minuten krijg je een link naar een `.apk`-bestand. Dat stuur je door naar je
+huisgenoten; zij openen het op hun Android-toestel en installeren de app.
+De instellingen hiervoor staan al klaar in [`eas.json`](eas.json).
+
+### En op iPhone?
+
+Daar is het lastiger: Apple laat je alleen apps installeren via TestFlight of de
+App Store, en daarvoor heb je een **Apple Developer-account nodig (99 euro per jaar)**.
+
+Voor een kot met zes mensen is dat meestal niet de moeite. Praktisch advies:
+
+- **Android-gebruikers** — de `.apk` hierboven, gratis.
+- **iPhone-gebruikers** — gewoon Expo Go gebruiken. Werkt prima, maar iemand moet
+  `npm start` draaien. Wil je dat niet, dan is `eas update` een alternatief: dan
+  draait de app zonder pc, zolang iemand één keer een build maakt.
+
+### Werken de herinneringen in Expo Go?
+
+Ja. De app plant de notificaties lokaal op je toestel in, en dat werkt gewoon in
+Expo Go. Wel twee dingen:
+
+- Notificaties werken **niet** in een simulator, alleen op een echte telefoon.
+- Je moet de app af en toe openen, zodat de herinneringen opnieuw ingepland worden.
+
+---
+
+## Bekend probleem in de ontwikkelomgeving
+
+In de cloud-container waarin deze code geschreven is, faalt de laatste stap van
+`expo export` (het omzetten naar Hermes-bytecode) door een te oude `hermesc`.
+Dat is nagegaan met een volledig lege Expo-app: die faalt identiek. Het ligt dus
+niet aan deze code — het bundelen zelf lukt volledig, en `npm start` en EAS Build
+werken gewoon. Op een normale pc speelt dit niet.
