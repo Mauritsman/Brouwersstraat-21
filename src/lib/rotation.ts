@@ -17,11 +17,17 @@
 import type { FloorId, Resident } from '../config/residents';
 import { FLOOR_ORDER } from '../config/residents';
 import type { TaskDefinition } from '../config/tasks';
+import type { Weekday } from './date';
 import { dateOfWeekday } from './date';
 
 export type Assignment = {
   taskKey: string;
   task: TaskDefinition;
+  /**
+   * Welke dag deze beurt is. Een taak die meerdere keren per week moet
+   * gebeuren levert meerdere beurten op, elk met een eigen dag.
+   */
+  weekday: Weekday;
   /** Wie het volgens de rotatie moet doen. */
   residentIds: string[];
   /** Enkel gevuld bij duo-taken. */
@@ -86,30 +92,38 @@ export function assignmentsForWeek(
 
   const offset = pool.length > 0 ? mod(weekIndex, pool.length) : 0;
 
+  // Eerst bepalen we PER TAAK wie hem heeft. Daarna splitsen we dat op in
+  // beurten. Een taak die drie keer per week moet gebeuren blijft dus de hele
+  // week bij hetzelfde duo — je wisselt niet halverwege de week van mensen.
   let soloSeen = 0;
-  return activeTasks.map((task) => {
-    const deadline = dateOfWeekday(weekIndex, task.deadlineWeekday);
-
+  const perTask = activeTasks.map((task) => {
     if (task.kind === 'duo') {
-      return {
-        taskKey: task.key,
-        task,
-        residentIds: duoMembers.map((r) => r.id),
-        floor: duoFloor,
-        deadline,
-      };
+      return { task, residentIds: duoMembers.map((r) => r.id), floor: duoFloor };
     }
-
     const person = pool.length > 0 ? pool[mod(offset + soloSeen, pool.length)] : null;
     soloSeen += 1;
-    return {
-      taskKey: task.key,
-      task,
-      residentIds: person ? [person.id] : [],
-      floor: null,
-      deadline,
-    };
+    return { task, residentIds: person ? [person.id] : [], floor: null as FloorId | null };
   });
+
+  const assignments: Assignment[] = [];
+  for (const { task, residentIds, floor } of perTask) {
+    // Geen dagen ingesteld? Val terug op vrijdag, zodat een taak nooit
+    // stilletjes uit de lijst verdwijnt.
+    const weekdays = task.deadlineWeekdays.length > 0 ? task.deadlineWeekdays : ([5] as Weekday[]);
+    for (const weekday of [...weekdays].sort((a, b) => a - b)) {
+      assignments.push({
+        taskKey: task.key,
+        task,
+        weekday,
+        residentIds,
+        floor,
+        deadline: dateOfWeekday(weekIndex, weekday),
+      });
+    }
+  }
+
+  // Op volgorde van dag, zodat de week logisch leest van maandag naar zondag.
+  return assignments.sort((a, b) => a.weekday - b.weekday || a.task.order - b.task.order);
 }
 
 /** Handige lookup: van id naar bewoner. */

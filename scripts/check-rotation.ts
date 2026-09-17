@@ -16,7 +16,12 @@ const floorCounts = new Map<string, number>();
 let repeats = 0;
 
 for (let w = 0; w < WEEKS; w++) {
-  const assignments = assignmentsForWeek(DEFAULT_RESIDENTS, DEFAULT_TASKS, w);
+  const alle = assignmentsForWeek(DEFAULT_RESIDENTS, DEFAULT_TASKS, w);
+  // Voor de eerlijkheidscheck tellen we per TAAK, niet per beurt: wie de
+  // keuken heeft, heeft hem de hele week (ma + wo + vr).
+  const assignments = alle.filter(
+    (a, i) => alle.findIndex((b) => b.taskKey === a.taskKey) === i
+  );
   const thisWeek = new Map<string, string>();
   const floor = duoFloorForWeek(DEFAULT_RESIDENTS, w)!;
   floorCounts.set(floor, (floorCounts.get(floor) ?? 0) + 1);
@@ -39,9 +44,9 @@ for (let w = 0; w < WEEKS; w++) {
 
 console.log(`\nEerste 12 weken:`);
 for (let w = 0; w < 12; w++) {
-  const line = assignmentsForWeek(DEFAULT_RESIDENTS, DEFAULT_TASKS, w)
-    .map((a) => `${a.task.key}=${a.residentIds.join('+') || '-'}`)
-    .join('  ');
+  const alle = assignmentsForWeek(DEFAULT_RESIDENTS, DEFAULT_TASKS, w);
+  const uniek = alle.filter((a, i) => alle.findIndex((b) => b.taskKey === a.taskKey) === i);
+  const line = uniek.map((a) => `${a.task.key}=${a.residentIds.join('+') || '-'}`).join('  ');
   console.log(`  w${String(w).padStart(2)}  ${line}`);
 }
 
@@ -53,5 +58,13 @@ for (const r of DEFAULT_RESIDENTS) {
 }
 
 console.log(`\nDuo-verdiep beurten: ${JSON.stringify(Object.fromEntries(floorCounts))}`);
+
+// Hoeveel losse beurten levert een week op?
+const beurten = assignmentsForWeek(DEFAULT_RESIDENTS, DEFAULT_TASKS, 0);
+console.log(`\nBeurten in week 0 (${beurten.length} stuks):`);
+const dagen = ['', 'ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
+for (const b of beurten) {
+  console.log(`  ${dagen[b.weekday]}  ${b.task.title.padEnd(16)} ${b.residentIds.join(' + ') || '-'}`);
+}
 console.log(repeats === 0 ? '\nOK: niemand twee weken na elkaar dezelfde taak.' : `\nFOUT: ${repeats} herhalingen.`);
 process.exit(repeats === 0 ? 0 : 1);

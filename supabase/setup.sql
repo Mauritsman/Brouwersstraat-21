@@ -27,15 +27,38 @@ create table if not exists public.residents (
 --    'solo' = één bewoner
 -- ------------------------------------------------------------
 create table if not exists public.tasks (
-  key              text primary key,         -- bv. 'afwas-keuken'
-  title            text        not null,
-  subtitle         text        not null default '',
-  kind             text        not null check (kind in ('duo', 'solo')),
-  deadline_weekday smallint    not null default 5 check (deadline_weekday between 1 and 7),
-  sort_order       integer     not null default 0,
-  active           boolean     not null default true,
-  updated_at       timestamptz not null default now()
+  key               text primary key,        -- bv. 'afwas-keuken'
+  title             text        not null,
+  subtitle          text        not null default '',
+  kind              text        not null check (kind in ('duo', 'solo')),
+  -- Op welke dagen moet dit gebeuren? 1 = maandag ... 7 = zondag.
+  -- Meerdere dagen = meerdere beurten per week. De keuken staat op {1,3,5}.
+  deadline_weekdays smallint[]  not null default '{5}',
+  sort_order        integer     not null default 0,
+  active            boolean     not null default true,
+  updated_at        timestamptz not null default now()
 );
+
+-- Draaide je een oudere versie van dit bestand? Dan stond er nog één vaste
+-- dag per taak. Deze blok zet dat om naar de nieuwe lijst, zonder dataverlies.
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'tasks' and column_name = 'deadline_weekdays'
+  ) then
+    alter table public.tasks add column deadline_weekdays smallint[] not null default '{5}';
+  end if;
+
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'tasks' and column_name = 'deadline_weekday'
+  ) then
+    update public.tasks set deadline_weekdays = array[deadline_weekday]::smallint[];
+    alter table public.tasks drop column deadline_weekday;
+  end if;
+end
+$$;
 
 -- ------------------------------------------------------------
 -- 3. Weekstatus
@@ -49,13 +72,41 @@ create table if not exists public.tasks (
 create table if not exists public.week_tasks (
   week_key     text        not null,          -- bv. '2026-W38'
   task_key     text        not null references public.tasks (key) on delete cascade,
+  -- Welke beurt binnen de week: 1 = maandag ... 7 = zondag. Daardoor heeft
+  -- de keuken van maandag een eigen vinkje naast die van woensdag en vrijdag.
+  weekday      smallint    not null default 5 check (weekday between 1 and 7),
   assignee_ids text[],
   done         boolean     not null default false,
   done_by      text        references public.residents (id) on delete set null,
   done_at      timestamptz,
   updated_at   timestamptz not null default now(),
-  primary key (week_key, task_key)
+  primary key (week_key, task_key, weekday)
 );
+
+-- Ook hier: een oudere database had één rij per taak per week, zonder dag.
+-- We voegen de kolom toe en breiden de sleutel uit. Bestaande vinkjes
+-- blijven staan en komen op vrijdag terecht.
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'week_tasks' and column_name = 'weekday'
+  ) then
+    alter table public.week_tasks add column weekday smallint not null default 5;
+    alter table public.week_tasks add constraint week_tasks_weekday_check check (weekday between 1 and 7);
+  end if;
+
+  if not exists (
+    select 1
+    from pg_index i
+    join pg_attribute a on a.attrelid = i.indrelid and a.attnum = any (i.indkey)
+    where i.indrelid = 'public.week_tasks'::regclass and i.indisprimary and a.attname = 'weekday'
+  ) then
+    alter table public.week_tasks drop constraint if exists week_tasks_pkey;
+    alter table public.week_tasks add primary key (week_key, task_key, weekday);
+  end if;
+end
+$$;
 
 create index if not exists week_tasks_week_idx on public.week_tasks (week_key);
 
@@ -164,14 +215,15 @@ on conflict (id) do update
       color = excluded.color,
       sort_order = excluded.sort_order;
 
-insert into public.tasks (key, title, subtitle, kind, deadline_weekday, sort_order, active) values
-  ('afwas-keuken', 'AFWAS + KEUKEN',  'Alles afwassen, aanrecht en vuur schoonschrobben', 'duo',  5, 0, true),
-  ('gang-trap',    'GANG + TRAP',     'Stofzuigen van gelijkvloers tot boven',            'solo', 5, 1, true),
-  ('koertje',      'KOERTJE',         'Buiten opruimen en vegen',                          'solo', 5, 2, true),
-  ('frigo',        'FRIGO LEEGMAKEN', 'Elke vrijdag: alles buiten dat er niet meer in hoort', 'solo', 5, 3, true)
+insert into public.tasks (key, title, subtitle, kind, deadline_weekdays, sort_order, active) values
+  -- De keuken moet drie keer per week: maandag, woensdag en vrijdag.
+  ('afwas-keuken', 'AFWAS + KEUKEN',  'Alles afwassen, aanrecht en vuur schoonschrobben', 'duo',  '{1,3,5}', 0, true),
+  ('gang-trap',    'GANG + TRAP',     'Stofzuigen van gelijkvloers tot boven',            'solo', '{5}',     1, true),
+  ('koertje',      'KOERTJE',         'Buiten opruimen en vegen',                          'solo', '{5}',     2, true),
+  ('frigo',        'FRIGO LEEGMAKEN', 'Elke vrijdag: alles buiten dat er niet meer in hoort', 'solo', '{5}', 3, true)
 on conflict (key) do update
   set title = excluded.title,
       subtitle = excluded.subtitle,
       kind = excluded.kind,
-      deadline_weekday = excluded.deadline_weekday,
+      deadline_weekdays = excluded.deadline_weekdays,
       sort_order = excluded.sort_order;

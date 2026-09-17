@@ -18,6 +18,7 @@ import type { Resident } from '../config/residents';
 import type { WeekTask } from './week';
 import { PUT_OUT_HOUR } from '../config/waste';
 import { upcomingPickups } from './waste';
+import { addDays } from './date';
 import { colors } from '../theme/theme';
 import { supabase, TABLES } from './supabase';
 
@@ -120,21 +121,24 @@ export async function rescheduleAll(
   for (const { tasks } of weeks) {
     const mine = me ? tasks.filter((t) => t.assignees.some((a) => a.id === me.id) && !t.done) : [];
 
-    if (prefs.taskReminders && mine.length > 0) {
-      // Maandagavond 18:00: de week begint, dit is jouw lijst.
-      const monday = new Date(mine[0].deadline);
-      monday.setDate(monday.getDate() - (mine[0].task.deadlineWeekday - 1));
-      const names = mine.map((t) => t.task.title).join(' + ');
-      await schedule('JIJ BENT AAN DE BEURT', `${names}. Deadline vrijdag. Niet uitstellen.`, at(monday, 18));
-
-      // Donderdagavond 20:00: laatste waarschuwing voor de vrijdag-deadline.
-      const thursday = new Date(mine[0].deadline);
-      thursday.setDate(thursday.getDate() - 1);
-      await schedule('LAATSTE KANS', `${names} — morgen is de deadline.`, at(thursday, 20));
+    if (prefs.taskReminders) {
+      // Eén herinnering per beurt, de avond ervoor om 18:00. Taken die
+      // meerdere keren per week terugkomen (zoals de keuken) krijgen dus ook
+      // meerdere herinneringen — op maandag, woensdag en vrijdag.
+      for (const task of mine) {
+        const wanneer = task.occurrence
+          ? `${task.task.title} (${task.occurrence.index} van ${task.occurrence.total})`
+          : task.task.title;
+        await schedule(
+          'JIJ BENT AAN DE BEURT',
+          `${wanneer} — morgen is de deadline. Niet uitstellen.`,
+          at(addDays(task.deadline, -1), 18)
+        );
+      }
     }
 
     if (prefs.fridayDeadline) {
-      const friday = tasks.find((t) => t.task.deadlineWeekday === 5)?.deadline;
+      const friday = tasks.find((t) => t.weekday === 5)?.deadline;
       if (friday) {
         await schedule(
           'VRIJDAG: ALLES MOET PROPER ZIJN',

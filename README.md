@@ -19,6 +19,9 @@ Gebouwd met **React Native + Expo** (iOS en Android) en **Supabase** als databas
 - **Afval** — de ophaalkalender voor de komende 8 weken, uitgerekend uit het ritme.
 - **Beheer** — bewoners toevoegen of verwijderen, taken aan/uit, herinneringen instellen.
 
+De keuken moet **drie keer per week** (maandag, woensdag en vrijdag) en krijgt dus
+drie aparte beurten met elk een eigen vinkje. De andere taken zijn één keer per week.
+
 Taken roteren automatisch elke week. Je kan een taak doorgeven aan iemand anders
 (bv. tijdens de examens) en de hele groep ziet wie hem nu echt heeft. Een taak die
 vrijdag niet is afgevinkt komt op de **Muur van Schande** te staan.
@@ -198,6 +201,9 @@ De regels (in [`src/lib/rotation.ts`](src/lib/rotation.ts)):
    persoon vrij.
 3. Het startpunt schuift elke week op, zodat niemand twee weken na elkaar dezelfde
    taak krijgt.
+4. Een taak die meerdere keren per week moet gebeuren blijft de hele week bij
+   dezelfde mensen. Je wisselt dus niet halverwege de week van duo: wie de keuken
+   heeft, heeft hem op maandag, woensdag én vrijdag.
 
 Controleren of dat klopt:
 
@@ -284,6 +290,7 @@ Aan- en uitzetten doe je per soort in het **Beheer**-scherm.
 | Een bewoner toevoegen of verwijderen | In de app: **Beheer** |
 | Een taak tijdelijk uitzetten | In de app: **Beheer** |
 | Een nieuwe taak toevoegen | [`src/config/tasks.ts`](src/config/tasks.ts) — de rotatie neemt hem vanzelf mee |
+| Een taak vaker per week | `deadlineWeekdays` in datzelfde bestand, bv. `[1, 3, 5]` voor ma/wo/vr |
 | Het afvalritme wijzigen | [`src/config/waste.ts`](src/config/waste.ts) |
 | Kleuren of lettertypes | [`src/theme/theme.ts`](src/theme/theme.ts) |
 | De rotatieregels zelf | [`src/lib/rotation.ts`](src/lib/rotation.ts) |

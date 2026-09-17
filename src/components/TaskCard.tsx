@@ -143,7 +143,11 @@ export function TaskCard({
               <ResidentRow residents={item.assignees} dimmed={item.done} />
             </View>
             <View style={styles.metaRight}>
-              <Text style={styles.label}>DEADLINE</Text>
+              <Text style={styles.label}>
+                {item.occurrence
+                  ? `BEURT ${item.occurrence.index}/${item.occurrence.total}`
+                  : 'DEADLINE'}
+              </Text>
               <Text style={[styles.deadline, { color: accent }]}>
                 {WEEKDAY_NAMES[isoWeekday(item.deadline)].toUpperCase()}
               </Text>

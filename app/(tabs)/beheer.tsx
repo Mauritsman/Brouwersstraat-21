@@ -6,6 +6,7 @@ import { FireBackground } from '../../src/components/FireBackground';
 import { FireButton, GhostButton, Panel, SectionTitle } from '../../src/components/Chrome';
 import { ResidentBadge } from '../../src/components/ResidentBadge';
 import { FLAME_PALETTE, FLOOR_LABELS, FLOOR_ORDER, type FloorId } from '../../src/config/residents';
+import { WEEKDAY_SHORT } from '../../src/lib/date';
 import { isSupabaseConfigured } from '../../src/lib/supabase';
 import { KEYS, loadJson, saveJson } from '../../src/lib/storage';
 import {
@@ -143,7 +144,9 @@ export default function AdminScreen() {
               <View style={styles.taskInfo}>
                 <Text style={[styles.taskTitle, !t.active && styles.dim]}>{t.title}</Text>
                 <Text style={styles.taskSub}>
-                  {t.kind === 'duo' ? 'DUO · PER VERDIEP' : 'SOLO'} · DEADLINE VRIJDAG
+                  {t.kind === 'duo' ? 'DUO · PER VERDIEP' : 'SOLO'} ·{' '}
+                  {t.deadlineWeekdays.map((d) => WEEKDAY_SHORT[d]).join(' · ')}
+                  {t.deadlineWeekdays.length > 1 ? ` · ${t.deadlineWeekdays.length}× PER WEEK` : ''}
                 </Text>
               </View>
               <Switch
@@ -155,7 +158,8 @@ export default function AdminScreen() {
             </View>
           ))}
           <Text style={styles.hint}>
-            Nieuwe taken voeg je toe in src/config/tasks.ts — de rotatie neemt ze automatisch mee.
+            Nieuwe taken, of een taak vaker per week, stel je in via deadlineWeekdays in
+            src/config/tasks.ts. De rotatie en de herinneringen volgen automatisch.
           </Text>
 
           <SectionTitle>HERINNERINGEN</SectionTitle>

@@ -34,8 +34,8 @@ type AppApi = AppState & {
   chooseIdentity: (residentId: string) => Promise<void>;
   forgetIdentity: () => Promise<void>;
   weekTasks: (weekIndex: number) => WeekTask[];
-  setDone: (weekKey: string, taskKey: string, done: boolean, byResidentId: string | null) => Promise<void>;
-  swapTask: (weekKey: string, taskKey: string, assigneeIds: string[] | null) => Promise<void>;
+  setDone: (task: WeekTask, done: boolean, byResidentId: string | null) => Promise<void>;
+  swapTask: (task: WeekTask, assigneeIds: string[] | null) => Promise<void>;
   addResident: (resident: Omit<Resident, 'order'>) => Promise<void>;
   updateResident: (id: string, patch: Partial<Resident>) => Promise<void>;
   removeResident: (id: string) => Promise<void>;
@@ -65,6 +65,7 @@ function rowToTaskState(row: any): TaskState {
   return {
     weekKey: row.week_key,
     taskKey: row.task_key,
+    weekday: row.weekday,
     assigneeIds: row.assignee_ids ?? null,
     done: row.done ?? false,
     doneBy: row.done_by ?? null,
@@ -76,6 +77,7 @@ function taskStateToRow(s: TaskState) {
   return {
     week_key: s.weekKey,
     task_key: s.taskKey,
+    weekday: s.weekday,
     assignee_ids: s.assigneeIds,
     done: s.done,
     done_by: s.doneBy,
@@ -147,7 +149,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         title: row.title,
         subtitle: row.subtitle ?? '',
         kind: row.kind,
-        deadlineWeekday: row.deadline_weekday,
+        deadlineWeekdays: row.deadline_weekdays ?? [5],
         order: row.sort_order ?? 0,
         active: row.active ?? true,
       })) as TaskDefinition[];
@@ -155,7 +157,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const states: Record<string, TaskState> = {};
       for (const row of statesRes.data ?? []) {
         const s = rowToTaskState(row);
-        states[stateKey(s.weekKey, s.taskKey)] = s;
+        states[stateKey(s.weekKey, s.taskKey, s.weekday)] = s;
       }
 
       if (!mounted.current) return;
@@ -199,8 +201,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const s = rowToTaskState(row);
         setState((prev) => {
           const states = { ...prev.states };
-          if (payload.eventType === 'DELETE') delete states[stateKey(s.weekKey, s.taskKey)];
-          else states[stateKey(s.weekKey, s.taskKey)] = s;
+          const k = stateKey(s.weekKey, s.taskKey, s.weekday);
+          if (payload.eventType === 'DELETE') delete states[k];
+          else states[k] = s;
           void saveJson(KEYS.weekState, states);
           return { ...prev, states };
         });
@@ -243,12 +246,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       weekTasks: (weekIndex: number) =>
         buildWeek(state.residents, state.tasks, weekIndex, state.states, now),
 
-      setDone: async (weekKey, taskKey, done, byResidentId) => {
-        const key = stateKey(weekKey, taskKey);
+      setDone: async (task, done, byResidentId) => {
+        const { weekKey, taskKey, weekday } = task;
+        const key = stateKey(weekKey, taskKey, weekday);
         const previous = state.states[key];
         const next: TaskState = {
           weekKey,
           taskKey,
+          weekday,
           assigneeIds: previous?.assigneeIds ?? null,
           done,
           doneBy: done ? byResidentId : null,
@@ -260,16 +265,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           return { ...s, states };
         });
         if (supabase) {
-          await supabase.from(TABLES.weekTasks).upsert(taskStateToRow(next), { onConflict: 'week_key,task_key' });
+          await supabase
+            .from(TABLES.weekTasks)
+            .upsert(taskStateToRow(next), { onConflict: 'week_key,task_key,weekday' });
         }
       },
 
-      swapTask: async (weekKey, taskKey, assigneeIds) => {
-        const key = stateKey(weekKey, taskKey);
+      swapTask: async (task, assigneeIds) => {
+        const { weekKey, taskKey, weekday } = task;
+        const key = stateKey(weekKey, taskKey, weekday);
         const previous = state.states[key];
         const next: TaskState = {
           weekKey,
           taskKey,
+          weekday,
           assigneeIds,
           done: previous?.done ?? false,
           doneBy: previous?.doneBy ?? null,
@@ -281,7 +290,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           return { ...s, states };
         });
         if (supabase) {
-          await supabase.from(TABLES.weekTasks).upsert(taskStateToRow(next), { onConflict: 'week_key,task_key' });
+          await supabase
+            .from(TABLES.weekTasks)
+            .upsert(taskStateToRow(next), { onConflict: 'week_key,task_key,weekday' });
         }
       },
 

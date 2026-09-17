@@ -11,8 +11,14 @@ export type TaskDefinition = {
   title: string;
   subtitle: string;
   kind: TaskKind;
-  /** Tegen wanneer moet het klaar zijn? (1 = maandag ... 7 = zondag) */
-  deadlineWeekday: Weekday;
+  /**
+   * Op welke dagen moet dit gebeuren? (1 = maandag ... 7 = zondag)
+   *
+   * Meerdere dagen = meerdere beurten per week, elk met een eigen deadline
+   * en een eigen vinkje. De keuken moet bijvoorbeeld drie keer per week:
+   * maandag, woensdag en vrijdag.
+   */
+  deadlineWeekdays: Weekday[];
   /** Volgorde in de lijst én in de rotatie. */
   order: number;
   active: boolean;
@@ -24,7 +30,7 @@ export const DEFAULT_TASKS: TaskDefinition[] = [
     title: 'AFWAS + KEUKEN',
     subtitle: 'Alles afwassen, aanrecht en vuur schoonschrobben',
     kind: 'duo',
-    deadlineWeekday: 5,
+    deadlineWeekdays: [1, 3, 5], // maandag, woensdag, vrijdag
     order: 0,
     active: true,
   },
@@ -33,7 +39,7 @@ export const DEFAULT_TASKS: TaskDefinition[] = [
     title: 'GANG + TRAP',
     subtitle: 'Stofzuigen van gelijkvloers tot boven',
     kind: 'solo',
-    deadlineWeekday: 5,
+    deadlineWeekdays: [5],
     order: 1,
     active: true,
   },
@@ -42,7 +48,7 @@ export const DEFAULT_TASKS: TaskDefinition[] = [
     title: 'KOERTJE',
     subtitle: 'Buiten opruimen en vegen',
     kind: 'solo',
-    deadlineWeekday: 5,
+    deadlineWeekdays: [5],
     order: 2,
     active: true,
   },
@@ -51,7 +57,7 @@ export const DEFAULT_TASKS: TaskDefinition[] = [
     title: 'FRIGO LEEGMAKEN',
     subtitle: 'Elke vrijdag: alles buiten dat er niet meer in hoort',
     kind: 'solo',
-    deadlineWeekday: 5,
+    deadlineWeekdays: [5],
     order: 3,
     active: true,
   },

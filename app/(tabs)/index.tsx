@@ -36,6 +36,19 @@ export default function WeekScreen() {
   const openCount = tasks.filter((t) => !t.done).length;
   const missed = tasks.filter((t) => t.status === 'missed');
 
+  // Een taak die meerdere keren per week terugkomt zou hier drie keer dezelfde
+  // naam opleveren. We tonen hem één keer, met het aantal openstaande beurten.
+  const mijnOpdracht = (() => {
+    if (mine.length === 0) return 'NIETS DEZE WEEK. GENIET ERVAN.';
+    const open = mine.filter((t) => !t.done);
+    if (open.length === 0) return 'ALLES AFGEVINKT. BEEST.';
+    const perTaak = new Map<string, number>();
+    for (const t of open) perTaak.set(t.task.title, (perTaak.get(t.task.title) ?? 0) + 1);
+    return [...perTaak.entries()]
+      .map(([titel, aantal]) => (aantal > 1 ? `${titel} ×${aantal}` : titel))
+      .join(' + ');
+  })();
+
   // Herinneringen opnieuw inplannen zodra de taken (of een ruil) wijzigen.
   useEffect(() => {
     (async () => {
@@ -85,16 +98,7 @@ export default function WeekScreen() {
               <Flame size={26} mode={mine.some((t) => !t.done && t.status === 'burning') ? 'raging' : 'lit'} color={me.color} />
               <View style={styles.heroText}>
                 <Text style={[styles.heroLabel, { color: me.color }]}>JOUW OPDRACHT</Text>
-                <Text style={styles.heroValue}>
-                  {mine.length === 0
-                    ? 'NIETS DEZE WEEK. GENIET ERVAN.'
-                    : mine.every((t) => t.done)
-                      ? 'ALLES AFGEVINKT. BEEST.'
-                      : mine
-                          .filter((t) => !t.done)
-                          .map((t) => t.task.title)
-                          .join(' + ')}
-                </Text>
+                <Text style={styles.heroValue}>{mijnOpdracht}</Text>
               </View>
             </View>
           )}
@@ -105,10 +109,10 @@ export default function WeekScreen() {
 
           {tasks.map((item) => (
             <TaskCard
-              key={item.taskKey}
+              key={`${item.taskKey}-${item.weekday}`}
               item={item}
               me={me}
-              onToggle={() => void setDone(item.weekKey, item.taskKey, !item.done, me?.id ?? null)}
+              onToggle={() => void setDone(item, !item.done, me?.id ?? null)}
               onSwap={() => {
                 void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setSwapTarget(item);
@@ -121,7 +125,7 @@ export default function WeekScreen() {
               <SectionTitle>MUUR VAN SCHANDE</SectionTitle>
               <View style={styles.shame}>
                 {missed.map((t) => (
-                  <Text key={t.taskKey} style={styles.shameLine}>
+                  <Text key={`${t.taskKey}-${t.weekday}`} style={styles.shameLine}>
                     <Text style={styles.shameName}>
                       {t.assignees.map((a) => a.name.toUpperCase()).join(' + ') || 'NIEMAND'}
                     </Text>
@@ -145,7 +149,7 @@ export default function WeekScreen() {
         residents={residents}
         onClose={() => setSwapTarget(null)}
         onAssign={(ids) => {
-          if (swapTarget) void swapTask(swapTarget.weekKey, swapTarget.taskKey, ids);
+          if (swapTarget) void swapTask(swapTarget, ids);
           setSwapTarget(null);
         }}
       />
