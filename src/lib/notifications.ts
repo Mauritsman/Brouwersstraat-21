@@ -33,17 +33,26 @@ export const DEFAULT_PREFS: NotificationPrefs = {
   fridayDeadline: true,
 };
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
+
+/**
+ * Draait de app als webversie? Dan slaan we notificaties helemaal over.
+ * expo-notifications werkt daar niet, en we willen geen crash.
+ */
+export const notificationsSupported = Platform.OS !== 'web';
 
 /** Vraagt toestemming. Geeft false terug als de gebruiker weigert. */
 export async function ensurePermission(): Promise<boolean> {
+  if (!notificationsSupported) return false;
   if (!Device.isDevice) return false; // simulators krijgen geen echte pushes
 
   if (Platform.OS === 'android') {
@@ -68,6 +77,7 @@ export async function ensurePermission(): Promise<boolean> {
  */
 export async function registerPushToken(residentId: string): Promise<string | null> {
   try {
+    if (!notificationsSupported) return null;
     if (!(await ensurePermission())) return null;
     const projectId =
       (require('expo-constants').default?.expoConfig?.extra?.eas?.projectId as string | undefined) ?? undefined;
@@ -147,5 +157,6 @@ export async function rescheduleAll(
 }
 
 export async function cancelAll(): Promise<void> {
+  if (!notificationsSupported) return;
   await Notifications.cancelAllScheduledNotificationsAsync();
 }

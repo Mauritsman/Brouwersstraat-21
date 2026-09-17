@@ -8,7 +8,12 @@ import { ResidentBadge } from '../../src/components/ResidentBadge';
 import { FLAME_PALETTE, FLOOR_LABELS, FLOOR_ORDER, type FloorId } from '../../src/config/residents';
 import { isSupabaseConfigured } from '../../src/lib/supabase';
 import { KEYS, loadJson, saveJson } from '../../src/lib/storage';
-import { DEFAULT_PREFS, cancelAll, type NotificationPrefs } from '../../src/lib/notifications';
+import {
+  DEFAULT_PREFS,
+  cancelAll,
+  notificationsSupported,
+  type NotificationPrefs,
+} from '../../src/lib/notifications';
 import { colors, space, text, type } from '../../src/theme/theme';
 
 /** Beheerscherm: bewoners, taken, notificaties en je eigen naam. */
@@ -154,6 +159,14 @@ export default function AdminScreen() {
           </Text>
 
           <SectionTitle>HERINNERINGEN</SectionTitle>
+          {!notificationsSupported && (
+            <Panel style={styles.webWarning}>
+              <Text style={styles.body}>
+                Je gebruikt de webversie. Herinneringen werken hier niet — die zitten alleen in de
+                geïnstalleerde telefoon-app. De taken en de afvalkalender werken wel gewoon.
+              </Text>
+            </Panel>
+          )}
           <Panel>
             <PrefRow
               label="JOUW TAAK"
@@ -295,5 +308,6 @@ const styles = StyleSheet.create({
   prefHint: { ...text.body, fontSize: 12 },
   body: { ...text.body, fontSize: 14, lineHeight: 20 },
   spaced: { marginTop: space.md },
+  webWarning: { borderLeftColor: colors.gold, marginBottom: space.sm },
   footer: { ...text.label, textAlign: 'center', marginTop: space.xxl, fontSize: 9 },
 });

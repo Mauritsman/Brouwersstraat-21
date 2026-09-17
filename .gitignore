@@ -22,3 +22,9 @@ ios/
 *.orig.*
 
 .DS_Store
+
+# Webbuild
+dist/
+
+# Tijdelijk script voor screenshots
+shot.mjs

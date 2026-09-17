@@ -1,0 +1,17 @@
+{
+  "name": "Brouwersstraat 21",
+  "short_name": "BS21",
+  "description": "Kot-taken en afvalkalender voor Brouwersstraat 21, Leuven.",
+  "lang": "nl-BE",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07060A",
+  "theme_color": "#07060A",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

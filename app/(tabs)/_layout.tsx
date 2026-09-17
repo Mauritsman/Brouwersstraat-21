@@ -45,12 +45,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ash,
     borderTopWidth: 2,
     borderTopColor: colors.ember,
-    height: 78,
-    paddingTop: 8,
-    paddingBottom: 18,
+    // Ruim genoeg zodat het label niet afgesneden wordt, ook op toestellen
+    // met een home-balk onderaan.
+    height: 92,
+    paddingTop: 10,
+    paddingBottom: 26,
   },
   item: { paddingVertical: 2 },
-  label: { fontFamily: type.display, fontSize: 11, letterSpacing: 1.8 },
+  label: { fontFamily: type.display, fontSize: 11, lineHeight: 15, letterSpacing: 1.8 },
   glyphWrap: { height: 18, justifyContent: 'center' },
   glyph: { fontSize: 14 },
 });

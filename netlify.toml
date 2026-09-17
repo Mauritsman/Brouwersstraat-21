@@ -1,0 +1,31 @@
+# Instellingen voor Netlify (gratis hosting van de webversie).
+#
+# Je hoeft hier niets aan te veranderen. Netlify leest dit bestand zelf en
+# weet dan hoe het de app moet bouwen. De twee Supabase-sleutels zet je in
+# de Netlify-site onder: Site configuration -> Environment variables.
+
+[build]
+  command = "npx expo export --platform web --output-dir dist"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# De service worker mag nooit gecached worden, anders blijft iedereen op een
+# oude versie hangen na een update.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# Onbekende paden vallen terug op de app zelf. Bestaande bestanden gaan
+# hier niet doorheen, dus de gewone pagina's blijven werken.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

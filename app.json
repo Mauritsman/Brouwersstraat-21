@@ -9,6 +9,7 @@
     "newArchEnabled": true,
     "backgroundColor": "#07060A",
     "splash": {
+      "image": "./assets/splash.png",
       "backgroundColor": "#07060A",
       "resizeMode": "contain"
     },
@@ -23,6 +24,7 @@
       "package": "be.brouwersstraat21.kot",
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#07060A"
       }
     },
@@ -38,6 +40,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "icon": "./assets/icon.png",
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./public/favicon.png"
     }
   }
 }
