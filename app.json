@@ -15,10 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "be.brouwersstraat21.kot",
-      "infoPlist": {
-        "UIUserInterfaceStyle": "Dark"
-      }
+      "bundleIdentifier": "be.brouwersstraat21.kot"
     },
     "android": {
       "package": "be.brouwersstraat21.kot",
