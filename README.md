@@ -20,7 +20,111 @@ vrijdag niet is afgevinkt komt op de **Muur van Schande** te staan.
 
 ---
 
-## De code op je eigen pc krijgen
+## Stap 1 — Supabase opzetten (alles op je telefoon)
+
+Zonder dit heeft elke telefoon zijn **eigen** lijst en ziet niemand elkaars
+vinkjes. Supabase is de gedeelde database. Gratis, en je kan het volledig vanaf
+je telefoon doen. Reken op zo'n 10 minuten.
+
+**1. Maak een project**
+
+Ga naar [supabase.com](https://supabase.com), maak een account en klik
+**New project**. Kies een naam (bv. `brouwersstraat21`) en een regio in Europa
+(bv. Frankfurt). Verzin een databasewachtwoord — je hebt het verder niet nodig,
+maar bewaar het.
+
+Het opstarten duurt een paar minuten.
+
+**2. Zet de tabellen klaar**
+
+Open [`supabase/setup.sql`](supabase/setup.sql) — of, makkelijker op een telefoon,
+de [kale tekstversie](https://raw.githubusercontent.com/Mauritsman/Brouwersstraat-21/claude/kot-taken-afval-app-nl3zbr/supabase/setup.sql).
+Selecteer alles en kopieer het.
+
+Ga in Supabase naar **SQL Editor → New query**, plak, en klik **Run**.
+
+Je zou `Success. No rows returned` moeten zien. Daarmee staan de vier tabellen
+klaar, inclusief de 6 bewoners en de 4 taken. Je mag dit gerust nog eens draaien,
+er gaat niets stuk.
+
+**3. Haal je twee sleutels op**
+
+Ga naar **Project Settings → API** en kopieer:
+
+- de **Project URL** (ziet eruit als `https://xxxxx.supabase.co`)
+- de **anon public** key (een lange tekst die met `eyJ` begint)
+
+Die twee heb je nodig bij stap 2 hieronder.
+
+> **Over veiligheid:** de anon-key hoort thuis in de app — dat is precies waar hij
+> voor gemaakt is, elke Supabase-app heeft hem in de code staan. Wat hem
+> normaal beschermt zijn de toegangsregels (RLS). Deze app heeft bewust geen
+> login, dus die regels staan open: wie de link én de sleutel heeft, kan de
+> takenlijst lezen en aanpassen. Voor een kot met zes mensen en een afwasbeurt is
+> dat prima. Zet er dus geen dingen in die echt privé zijn.
+
+Controleren of de SQL klopt (als je later iets aanpast):
+
+```bash
+npm run check:sql
+```
+
+Dat draait `setup.sql` in een echte Postgres en controleert de tabellen, de
+toegangsregels en of het twee keer draaien goed gaat.
+
+---
+
+## Stap 2 — De app online zetten
+
+De webversie wordt gratis gehost op [Netlify](https://netlify.com). Ook dit kan
+volledig vanaf je telefoon.
+
+1. Maak een account op netlify.com (kan met je GitHub-account).
+2. Kies **Add new site → Import an existing project → GitHub** en selecteer
+   deze repo, branch `claude/kot-taken-afval-app-nl3zbr`.
+3. De buildinstellingen staan al klaar in [`netlify.toml`](netlify.toml), dus daar
+   hoef je niets in te vullen.
+4. Ga vóór de eerste build naar **Site configuration → Environment variables** en
+   voeg de twee sleutels uit stap 1 toe:
+
+   | Key | Value |
+   |---|---|
+   | `EXPO_PUBLIC_SUPABASE_URL` | je Project URL |
+   | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | je anon public key |
+
+5. Klik **Deploy**. Na een paar minuten krijg je een link.
+
+> Voeg je de sleutels pas later toe? Klik dan op **Deploys → Trigger deploy →
+> Clear cache and deploy site**, anders zit de oude versie er nog in.
+
+---
+
+## Stap 3 — Op het startscherm van je huisgenoten
+
+Stuur de link naar de groep. Iedereen doet één keer dit:
+
+**iPhone (Safari)** — open de link, tik op het deel-icoon onderaan, scroll naar
+**Zet op beginscherm**.
+
+**Android (Chrome)** — open de link, tik op de drie puntjes rechtsboven, kies
+**App installeren** of **Toevoegen aan startscherm**.
+
+Daarna staat de vlam tussen hun gewone apps, opent hij zonder browserbalk en
+kunnen ze hun naam kiezen. Vanaf dan ziet iedereen dezelfde taken en vinkjes.
+
+> **Wat je hier inlevert:** push-herinneringen werken niet in de webversie.
+> De taken, de afvalkalender, het afvinken, ruilen en de Muur van Schande werken
+> allemaal wel. Wil je de herinneringen toch, lees dan *Een echte app maken*
+> onderaan — daarvoor heb je wel één keer een computer nodig.
+
+---
+
+## Met een computer werken (optioneel)
+
+Heb je geen computer? Sla dit over — de app werkt zonder. Dit heb je alleen
+nodig als je zelf iets in de code wil aanpassen.
+
+### De code binnenhalen
 
 De code staat op GitHub, niet op je pc. Je moet hem dus eerst binnenhalen.
 
@@ -48,7 +152,7 @@ Open daarna een terminal in die map.
 
 ---
 
-## Op je telefoon krijgen (5 minuten)
+### Testen zonder online te zetten
 
 Dit is de snelste manier. Je hebt de **Expo Go**-app nodig — gratis in de
 App Store en de Play Store.
@@ -71,37 +175,6 @@ staan — handig om te testen, maar je huisgenoten zien je vinkjes nog niet.
 
 > Zolang je Expo Go gebruikt moet `npm start` op je pc draaien om de app te
 > openen. Voor een app die los werkt, zie *Een echte app maken* onderaan.
-
----
-
-## De groep laten meekijken (Supabase)
-
-Om de app met z'n zessen te gebruiken heb je een gratis Supabase-project nodig.
-
-1. Maak een account op [supabase.com](https://supabase.com) en klik **New project**.
-2. Ga in je project naar **SQL Editor → New query**.
-3. Plak de inhoud van [`supabase/schema.sql`](supabase/schema.sql) en klik **Run**.
-   Dit maakt de tabellen aan.
-4. Doe hetzelfde met [`supabase/seed.sql`](supabase/seed.sql).
-   Dit zet de 6 bewoners en de 4 taken erin.
-5. Ga naar **Project Settings → API** en kopieer de **Project URL** en de
-   **anon public key**.
-6. Maak in de projectmap een bestand `.env` (kopieer `.env.example`) en vul in:
-
-   ```
-   EXPO_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-   EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
-   ```
-
-7. Stop de app (`Ctrl+C`) en start opnieuw met `npm start`.
-
-In het **Beheer**-scherm zie je nu onderaan of de database verbonden is.
-
-> **Over veiligheid:** de app heeft bewust geen login — voor zes mensen is dat
-> overkill. Dat betekent wel dat iedereen met je anon-sleutel de taken kan lezen en
-> aanpassen. Zet `.env` dus nooit in een publieke repo (dat is al voorkomen via
-> `.gitignore`). Voor een kot is dit prima; voor iets groters zou je echte accounts
-> willen.
 
 ---
 
@@ -236,8 +309,8 @@ src/
   store/             De centrale data + synchronisatie met Supabase
   theme/             Kleuren, lettertypes, afstanden
 
-supabase/            schema.sql en seed.sql om de database op te zetten
-scripts/             Controlescripts voor de rotatie en de afvalkalender
+supabase/            setup.sql: één bestand dat de database opzet
+scripts/             Controlescripts (rotatie, afval, SQL) en de iconen
 ```
 
 ---
