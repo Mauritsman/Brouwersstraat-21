@@ -11,7 +11,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+/**
+ * Supabase heeft deze sleutel hernoemd. Nieuwe projecten tonen een
+ * "publishable key" (begint met sb_publishable_), oudere projecten een
+ * "anon public key" (begint met eyJ). Allebei werken; we accepteren beide
+ * namen zodat het niet uitmaakt welke je invult.
+ */
+const anonKey =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 export const isSupabaseConfigured = Boolean(url && anonKey);
 

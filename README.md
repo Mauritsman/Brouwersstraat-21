@@ -57,19 +57,22 @@ er gaat niets stuk.
 
 **3. Haal je twee sleutels op**
 
-Ga naar **Project Settings → API** en kopieer:
+Ga naar **Settings** (het tandwiel onderaan links) → **API Keys**.
 
-- de **Project URL** (ziet eruit als `https://xxxxx.supabase.co`)
-- de **anon public** key (een lange tekst die met `eyJ` begint)
+Je hebt twee dingen nodig:
 
-Die twee heb je nodig bij stap 2 hieronder.
+| Wat | Waar | Hoe het eruitziet |
+|---|---|---|
+| **Project URL** | Settings → **Data API** | `https://xxxxx.supabase.co` |
+| **Publishable key** | Settings → **API Keys** | begint met `sb_publishable_` |
 
-> **Over veiligheid:** de anon-key hoort thuis in de app — dat is precies waar hij
-> voor gemaakt is, elke Supabase-app heeft hem in de code staan. Wat hem
-> normaal beschermt zijn de toegangsregels (RLS). Deze app heeft bewust geen
-> login, dus die regels staan open: wie de link én de sleutel heeft, kan de
-> takenlijst lezen en aanpassen. Voor een kot met zes mensen en een afwasbeurt is
-> dat prima. Zet er dus geen dingen in die echt privé zijn.
+> Supabase heeft deze sleutel hernoemd. Heb je een ouder project, dan heet
+> hij **anon public** en begint hij met `eyJ`. Allebei werken — de app
+> accepteert ze allebei.
+>
+> **Pak nooit de "secret key" of "service_role".** Die geeft volledige
+> toegang tot je database en hoort niet in een app. De publishable key is
+> bedoeld om in een app te staan; daar is hij voor gemaakt.
 
 Controleren of de SQL klopt (als je later iets aanpast):
 
@@ -98,7 +101,7 @@ volledig vanaf je telefoon.
    | Key | Value |
    |---|---|
    | `EXPO_PUBLIC_SUPABASE_URL` | je Project URL |
-   | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | je anon public key |
+   | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | je publishable key |
 
 5. Klik **Deploy**. Na een paar minuten krijg je een link.
 
