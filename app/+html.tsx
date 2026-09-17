@@ -9,6 +9,13 @@ import type { PropsWithChildren } from 'react';
  * Hier staat wat van de webversie een "echte" app maakt: het manifest, de
  * iOS-instellingen om vanaf het startscherm te openen, en de service worker.
  */
+/**
+ * Het adres waarop de app staat. Alleen nodig voor de linkpreview: die
+ * vraagt een volledig adres, geen relatief pad. Verhuis je naar een eigen
+ * domein, verander dan deze regel.
+ */
+const SITE_URL = process.env.EXPO_PUBLIC_SITE_URL ?? 'https://brouwersstraat21.netlify.app';
+
 export default function Root({ children }: PropsWithChildren) {
   return (
     <html lang="nl">
@@ -23,6 +30,17 @@ export default function Root({ children }: PropsWithChildren) {
 
         <title>Brouwersstraat 21</title>
         <meta name="description" content="Kot-taken en afvalkalender voor Brouwersstraat 21, Leuven." />
+
+        {/* Zo ziet de link er deftig uit als je hem in de kotgroep deelt */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={SITE_URL} />
+        <meta property="og:title" content="BROUWERSSTRAAT 21" />
+        <meta
+          property="og:description"
+          content="Wie doet deze week wat, en wanneer moet de vuilnisbak buiten."
+        />
+        <meta property="og:image" content={`${SITE_URL}/icon-512.png`} />
+        <meta name="twitter:card" content="summary" />
 
         {/* PWA: hierdoor mag de app op het startscherm gezet worden */}
         <link rel="manifest" href="/manifest.json" />

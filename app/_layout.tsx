@@ -65,6 +65,8 @@ function Gate() {
   return (
     <Stack
       screenOptions={{
+        // Zonder dit maakt de navigatie de tabtitel leeg zodra de app laadt.
+        title: 'Brouwersstraat 21',
         headerShown: false,
         contentStyle: { backgroundColor: colors.void },
         animation: 'fade',
