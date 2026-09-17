@@ -346,17 +346,34 @@ Na ~10 minuten krijg je een link naar een `.apk`-bestand. Dat stuur je door naar
 huisgenoten; zij openen het op hun Android-toestel en installeren de app.
 De instellingen hiervoor staan al klaar in [`eas.json`](eas.json).
 
-### En op iPhone?
+### En op iPhone? (het `.ipa`-verhaal)
 
-Daar is het lastiger: Apple laat je alleen apps installeren via TestFlight of de
-App Store, en daarvoor heb je een **Apple Developer-account nodig (99 euro per jaar)**.
+iOS heeft wel degelijk een eigen versie van het `.apk`-bestand: dat heet een
+**`.ipa`**. Maar daar heb je weinig aan, en dat ligt niet aan het bestand.
 
-Voor een kot met zes mensen is dat meestal niet de moeite. Praktisch advies:
+Het verschil is **ondertekening**. Een `.apk` kan je op Android gewoon aantikken
+en installeren. Een `.ipa` moet ondertekend zijn met een *provisioning profile*
+dat het toestel waarop het draait bij naam kent. Zonder die handtekening weigert
+iOS het te openen — hoe je het bestand ook bij iemand krijgt.
 
-- **Android-gebruikers** — de `.apk` hierboven, gratis.
-- **iPhone-gebruikers** — gewoon Expo Go gebruiken. Werkt prima, maar iemand moet
-  `npm start` draaien. Wil je dat niet, dan is `eas update` een alternatief: dan
-  draait de app zonder pc, zolang iemand één keer een build maakt.
+De mogelijke routes, en waarom ze hier niet passen:
+
+| Route | Kost | Waarom het hier strandt |
+|---|---|---|
+| **TestFlight** | 99 euro/jaar | Werkt prima en is het netst: huisgenoten krijgen een link, geen UDID-gedoe. Enige nadeel is de prijs. |
+| **Ad hoc `.ipa`** | 99 euro/jaar | Je hebt van elke iPhone het UDID nodig. Expo's eigen documentatie noemt dit "challenging if you try to share with someone who is not a developer". |
+| **Gratis Apple ID (AltStore, Sideloadly)** | gratis | De handtekening vervalt na 7 dagen. Voor zes telefoons betekent dat elke week opnieuw aansluiten op een computer. |
+| **EU web distribution** | 99 euro/jaar | Sinds de EU-regels mag je in principe buiten de App Store om verdelen, maar Apple eist daarbovenop dat je bedrijf aan één van hun criteria voldoet: een miljoen installaties vorig jaar, durfkapitaal, of een bankgarantie van een miljoen dollar. Niet haalbaar voor een kot. |
+
+**Als je ooit toch 99 euro/jaar wil uitgeven** is TestFlight de beste keuze. Je
+hebt daarvoor geen Mac nodig: EAS Build maakt de iOS-build in de cloud. Je hebt
+wel één keer een computer nodig (Windows of Linux volstaat) om de eerste build
+op te zetten.
+
+**Tot dan** is de webversie op het startscherm de enige manier waarop zowel
+iPhone- als Android-gebruikers meedoen. Dat is geen noodoplossing van tweede
+rang: hij heeft een eigen icoon, opent zonder browserbalk, en iedereen ziet
+dezelfde taken. Je levert alleen de push-herinneringen in.
 
 ### Werken de herinneringen in Expo Go?
 
