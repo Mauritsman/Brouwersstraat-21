@@ -7,7 +7,7 @@
  */
 import { DEFAULT_RESIDENTS } from '../src/config/residents';
 import { DEFAULT_TASKS } from '../src/config/tasks';
-import { assignmentsForWeek, duoFloorForWeek } from '../src/lib/rotation';
+import { assignmentsForWeek } from '../src/lib/rotation';
 
 const WEEKS = 52;
 const lastTaskPerPerson = new Map<string, string>();
@@ -23,12 +23,18 @@ for (let w = 0; w < WEEKS; w++) {
     (a, i) => alle.findIndex((b) => b.taskKey === a.taskKey) === i
   );
   const thisWeek = new Map<string, string>();
-  const floor = duoFloorForWeek(DEFAULT_RESIDENTS, w)!;
-  floorCounts.set(floor, (floorCounts.get(floor) ?? 0) + 1);
+  for (const a of alle) {
+    if (a.task.kind === 'duo' && a.residentIds.length > 0) {
+      const f = DEFAULT_RESIDENTS.find((r) => r.id === a.residentIds[0])!.floor;
+      floorCounts.set(f, (floorCounts.get(f) ?? 0) + 1);
+    }
+  }
 
   for (const a of assignments) {
     for (const id of a.residentIds) {
-      if (lastTaskPerPerson.get(id) === a.taskKey) {
+      // De keuken komt nu elke week bij iedereen langs, dus die mag wel
+      // herhalen. We controleren de regel op de solo-taken.
+      if (a.task.kind === 'solo' && lastTaskPerPerson.get(id) === a.taskKey) {
         console.log(`  ! week ${w}: ${id} heeft ${a.taskKey} twee weken na elkaar`);
         repeats++;
       }
@@ -57,14 +63,14 @@ for (const r of DEFAULT_RESIDENTS) {
   console.log(`  ${r.name.padEnd(8)} totaal ${String(total).padStart(3)}  ${JSON.stringify(c)}`);
 }
 
-console.log(`\nDuo-verdiep beurten: ${JSON.stringify(Object.fromEntries(floorCounts))}`);
+console.log(`\nKeukenbeurten per verdiep over ${WEEKS} weken: ${JSON.stringify(Object.fromEntries(floorCounts))}`);
 
-// Hoeveel losse beurten levert een week op?
-const beurten = assignmentsForWeek(DEFAULT_RESIDENTS, DEFAULT_TASKS, 0);
-console.log(`\nBeurten in week 0 (${beurten.length} stuks):`);
 const dagen = ['', 'ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
-for (const b of beurten) {
-  console.log(`  ${dagen[b.weekday]}  ${b.task.title.padEnd(16)} ${b.residentIds.join(' + ') || '-'}`);
+for (const w of [0, 1, 2]) {
+  console.log(`\nWeek ${w}:`);
+  for (const b of assignmentsForWeek(DEFAULT_RESIDENTS, DEFAULT_TASKS, w)) {
+    console.log(`  ${dagen[b.weekday]}  ${b.task.title.padEnd(16)} ${b.residentIds.join(' + ') || '-'}`);
+  }
 }
 console.log(repeats === 0 ? '\nOK: niemand twee weken na elkaar dezelfde taak.' : `\nFOUT: ${repeats} herhalingen.`);
 process.exit(repeats === 0 ? 0 : 1);

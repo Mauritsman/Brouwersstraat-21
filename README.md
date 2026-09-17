@@ -19,8 +19,10 @@ Gebouwd met **React Native + Expo** (iOS en Android) en **Supabase** als databas
 - **Afval** — de ophaalkalender voor de komende 8 weken, uitgerekend uit het ritme.
 - **Beheer** — bewoners toevoegen of verwijderen, taken aan/uit, herinneringen instellen.
 
-De keuken moet **drie keer per week** (maandag, woensdag en vrijdag) en krijgt dus
-drie aparte beurten met elk een eigen vinkje. De andere taken zijn één keer per week.
+De keuken moet **drie keer per week**: maandag, woensdag en vrijdag. Die drie
+beurten worden verdeeld over de drie verdiepen, dus **elk verdiep doet er één** —
+en welk verdiep op welke dag staat, schuift elke week op. De andere taken zijn
+één keer per week.
 
 Taken roteren automatisch elke week. Je kan een taak doorgeven aan iemand anders
 (bv. tijdens de examens) en de hele groep ziet wie hem nu echt heeft. Een taak die
@@ -197,16 +199,18 @@ ook zonder internet, en komt elk toestel tot exact hetzelfde antwoord.
 
 De regels (in [`src/lib/rotation.ts`](src/lib/rotation.ts)):
 
-1. **Duo-taken** (afwas + keuken) draaien per verdiep:
-   gelijkvloers → 1ste → 2de → gelijkvloers → …
-2. **Solo-taken** gaan naar mensen die die week géén duo-taak hebben.
-   Met 6 bewoners blijven er dus 4 over voor 3 solo-taken — elke week valt er één
-   persoon vrij.
-3. Het startpunt schuift elke week op, zodat niemand twee weken na elkaar dezelfde
-   taak krijgt.
-4. Een taak die meerdere keren per week moet gebeuren blijft de hele week bij
-   dezelfde mensen. Je wisselt dus niet halverwege de week van duo: wie de keuken
-   heeft, heeft hem op maandag, woensdag én vrijdag.
+1. **Duo-beurten** (afwas + keuken) worden verdeeld over de verdiepen. Drie
+   beurten en drie verdiepen betekent: elk verdiep precies één per week. Welk
+   verdiep de maandag krijgt schuift elke week op, zodat niemand altijd de
+   vrijdag heeft.
+2. **Solo-taken** rouleren door de hele lijst bewoners, met een startpunt dat
+   elke week één plaats opschuift. Daardoor krijgt niemand twee weken na elkaar
+   dezelfde solo-taak.
+3. Een solo-taak die meerdere keren per week zou terugkomen blijft wel bij
+   dezelfde persoon; je wisselt niet halverwege de week.
+
+Over 52 weken komt dat uit op precies 52 keukenbeurten per verdiep, en 42 tot 44
+taken per persoon.
 
 Controleren of dat klopt:
 

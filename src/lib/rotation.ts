@@ -59,11 +59,21 @@ export function duoCapableFloors(residents: Resident[]): FloorId[] {
   return FLOOR_ORDER.filter((f) => (counts.get(f) ?? 0) > 0);
 }
 
-/** Welk verdiep is deze week aan de beurt voor de duo-taken? */
-export function duoFloorForWeek(residents: Resident[], weekIndex: number): FloorId | null {
+/**
+ * Welk verdiep doet de zoveelste duo-beurt van deze week?
+ *
+ * De beurten worden verdeeld over de verdiepen: met drie keukenbeurten en
+ * drie verdiepen doet elk verdiep er precies één. Welk verdiep op welke dag
+ * staat schuift elke week op, zodat niemand altijd de vrijdag heeft.
+ */
+export function duoFloorForOccurrence(
+  residents: Resident[],
+  weekIndex: number,
+  occurrenceIndex: number
+): FloorId | null {
   const floors = duoCapableFloors(residents);
   if (floors.length === 0) return null;
-  return floors[mod(weekIndex, floors.length)];
+  return floors[mod(weekIndex + occurrenceIndex, floors.length)];
 }
 
 /**
@@ -80,43 +90,48 @@ export function assignmentsForWeek(
   const activeTasks = [...tasks].filter((t) => t.active).sort((a, b) => a.order - b.order);
   if (people.length === 0 || activeTasks.length === 0) return [];
 
-  const duoFloor = duoFloorForWeek(people, weekIndex);
-  const duoMembers = duoFloor ? people.filter((r) => r.floor === duoFloor) : [];
-  const duoIds = new Set(duoMembers.map((r) => r.id));
-
-  const soloTasks = activeTasks.filter((t) => t.kind === 'solo');
-
-  // Pool = iedereen zonder duo-taak. Te klein? Dan mag iedereen mee.
-  let pool = people.filter((r) => !duoIds.has(r.id));
-  if (pool.length < soloTasks.length) pool = people;
-
-  const offset = pool.length > 0 ? mod(weekIndex, pool.length) : 0;
-
-  // Eerst bepalen we PER TAAK wie hem heeft. Daarna splitsen we dat op in
-  // beurten. Een taak die drie keer per week moet gebeuren blijft dus de hele
-  // week bij hetzelfde duo — je wisselt niet halverwege de week van mensen.
-  let soloSeen = 0;
-  const perTask = activeTasks.map((task) => {
-    if (task.kind === 'duo') {
-      return { task, residentIds: duoMembers.map((r) => r.id), floor: duoFloor };
-    }
-    const person = pool.length > 0 ? pool[mod(offset + soloSeen, pool.length)] : null;
-    soloSeen += 1;
-    return { task, residentIds: person ? [person.id] : [], floor: null as FloorId | null };
-  });
-
+  const offset = mod(weekIndex, people.length);
   const assignments: Assignment[] = [];
-  for (const { task, residentIds, floor } of perTask) {
+
+  // Teller die over ALLE duo-beurten van de week doorloopt, zodat elk
+  // verdiep er één krijgt in plaats van één verdiep alle drie.
+  let duoSeen = 0;
+  // Solo-taken blijven per taak bij één persoon, ook als die taak meerdere
+  // keren per week terugkomt.
+  let soloSeen = 0;
+
+  for (const task of activeTasks) {
     // Geen dagen ingesteld? Val terug op vrijdag, zodat een taak nooit
     // stilletjes uit de lijst verdwijnt.
     const weekdays = task.deadlineWeekdays.length > 0 ? task.deadlineWeekdays : ([5] as Weekday[]);
-    for (const weekday of [...weekdays].sort((a, b) => a - b)) {
+    const sorted = [...weekdays].sort((a, b) => a - b);
+
+    if (task.kind === 'duo') {
+      for (const weekday of sorted) {
+        const floor = duoFloorForOccurrence(people, weekIndex, duoSeen);
+        duoSeen += 1;
+        const members = floor ? people.filter((r) => r.floor === floor) : [];
+        assignments.push({
+          taskKey: task.key,
+          task,
+          weekday,
+          residentIds: members.map((r) => r.id),
+          floor,
+          deadline: dateOfWeekday(weekIndex, weekday),
+        });
+      }
+      continue;
+    }
+
+    const person = people[mod(offset + soloSeen, people.length)] ?? null;
+    soloSeen += 1;
+    for (const weekday of sorted) {
       assignments.push({
         taskKey: task.key,
         task,
         weekday,
-        residentIds,
-        floor,
+        residentIds: person ? [person.id] : [],
+        floor: null,
         deadline: dateOfWeekday(weekIndex, weekday),
       });
     }
