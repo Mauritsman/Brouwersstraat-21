@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Brouwersstraat 21",
+    "slug": "brouwersstraat-21",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "bs21",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "backgroundColor": "#07060A",
+    "splash": {
+      "backgroundColor": "#07060A",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "be.brouwersstraat21.kot",
+      "infoPlist": {
+        "UIUserInterfaceStyle": "Dark"
+      }
+    },
+    "android": {
+      "package": "be.brouwersstraat21.kot",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#07060A"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "color": "#FF3B00"
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
