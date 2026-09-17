@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -47,6 +47,15 @@ function Gate() {
     if (ready) void hide();
   }, [ready, hide]);
 
+  // De navigatie maakt de tabtitel leeg zodra de app opstart, en opnieuw bij
+  // elke schermwissel. We zetten hem daarom telkens terug. Alleen op web:
+  // in de telefoon-app bestaat `document` niet.
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.title = 'Brouwersstraat 21';
+    }
+  }, [segments]);
+
   useEffect(() => {
     if (!ready) return;
     const onOnboarding = segments[0] === 'onboarding';
@@ -65,8 +74,6 @@ function Gate() {
   return (
     <Stack
       screenOptions={{
-        // Zonder dit maakt de navigatie de tabtitel leeg zodra de app laadt.
-        title: 'Brouwersstraat 21',
         headerShown: false,
         contentStyle: { backgroundColor: colors.void },
         animation: 'fade',
