@@ -3,6 +3,11 @@
 Kot-taken & afval-app voor Brouwersstraat 21, Leuven. Zes bewoners, drie verdiepen,
 één vrijdag-deadline.
 
+### 👉 De app staat live op **https://brouwersstraat21.netlify.app**
+
+Open die link op je telefoon en zet hem op je startscherm (zie *Stap 3* hieronder).
+Daarna staat de vlam tussen je gewone apps.
+
 Gebouwd met **React Native + Expo** (iOS en Android) en **Supabase** als database.
 
 ---
