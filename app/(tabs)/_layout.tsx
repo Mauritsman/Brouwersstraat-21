@@ -28,6 +28,10 @@ export default function TabsLayout() {
         name="beheer"
         options={{ title: 'BEHEER', tabBarIcon: ({ color }) => <TabGlyph glyph="✦" color={color} /> }}
       />
+      <Tabs.Screen
+        name="dashboard"
+        options={{ title: 'DASHBOARD', tabBarIcon: ({ color }) => <TabGlyph glyph="◆" color={color} /> }}
+      />
     </Tabs>
   );
 }
