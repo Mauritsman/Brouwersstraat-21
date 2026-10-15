@@ -1,3 +1,20 @@
+# WAAR HET WERK KOMT
+
+Dit spel krijgt een eigen GitHub-repo: `roblox-heist-game` (privé). Alles wat je voor het spel maakt (dit gameplan, latere documenten, later de code) hoort daar, en nergens anders. De repo `brouwersstraat-21` is mijn huisapp en heeft niets met het spel te maken: zet daar niets in.
+
+Kijk eerst of `roblox-heist-game` bestaat en of je er toegang toe hebt.
+
+- **Bestaat hij en heb je toegang:** zet het document dat je maakt erin als `docs/gameplan-roblox.md`, en zet deze prompt erin als `docs/roblox-prompt.md`.
+- **Bestaat hij niet, of heb je geen toegang:** begin niet aan een omweg. Geef me eerst deze stappen, in gewone taal:
+  1. Ga naar github.com/new.
+  2. Vul bij *Repository name* `roblox-heist-game` in.
+  3. Kies **Private**.
+  4. Vink **Add a README file** aan.
+  5. Klik op **Create repository**.
+  6. Ga naar https://claude.ai/connect-github en geef de Claude GitHub-app toegang tot de nieuwe repo. Heb ik bij het installeren gekozen voor "alleen geselecteerde repo's", dan moet ik hem daar aanvinken.
+
+  Schrijf het document daarna gewoon in de chat, zodat ik het niet kwijtraak. Je zet het in de repo zodra ik zeg dat de toegang klaar is.
+
 # MIJN TOOLS EN PLUGINS
 
 Dit zijn de tools en plugins die ik wil gebruiken om het spel te bouwen. Ik heb nog niets ervan geïnstalleerd of ingesteld.
